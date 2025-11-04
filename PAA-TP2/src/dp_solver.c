@@ -13,14 +13,10 @@ typedef struct {
     int valid;
 } State;
 
-/* Solve with DP similar to previous single-file solution */
 PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *stats, int verbose) {
     int h = P->h, w = P->w;
     int F0 = P->F_init, D = P->D, N = P->N;
-
     clock_t t0 = clock();
-
-    /* allocate dp */
     State ***dp = malloc(2 * sizeof(State**));
     for (int m=0;m<2;++m) {
         dp[m] = malloc(h * sizeof(State*));
@@ -39,8 +35,6 @@ PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *sta
     long nodes_expanded = 0;
     long reachable_states = 0;
     long max_frontier = 0;
-
-    /* initialize column 0 */
     for (int m=0;m<2;++m) {
         for (int r=0;r<h;++r) {
             const Cell *c = &P->map[m][r][0];
@@ -65,7 +59,6 @@ PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *sta
         }
     }
 
-    /* DP iterate */
     for (int col=0; col<w-1; ++col) {
         long frontier = 0;
         for (int m=0;m<2;++m) {
@@ -109,7 +102,7 @@ PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *sta
         if (frontier > max_frontier) max_frontier = frontier;
     }
 
-    /* find best at last column */
+
     int best_force = INF_NEG;
     int best_r=-1, best_m=-1;
     for (int m=0;m<2;++m) for (int r=0;r<h;++r) {
@@ -143,7 +136,6 @@ PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *sta
         return NULL;
     }
 
-    /* reconstruct path into array of PathStep (reverse then flip) */
     int maxlen = w * 2 + 10;
     PathStep *rev = malloc(maxlen * sizeof(PathStep));
     int plen = 0;
@@ -159,13 +151,10 @@ PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *sta
         int pr = s->prev_row, pc = s->prev_col, pm = s->prev_map;
         cr = pr; cc = pc; cm = pm;
     }
-
-    /* flip to forward order */
     PathStep *path = malloc(plen * sizeof(PathStep));
     for (int i=0;i<plen;++i) path[i] = rev[plen-1-i];
     free(rev);
 
-    /* free dp */
     for (int m=0;m<2;++m) for (int i=0;i<h;++i) free(dp[m][i]);
     for (int m=0;m<2;++m) free(dp[m]);
     free(dp);

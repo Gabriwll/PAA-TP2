@@ -6,10 +6,6 @@
 #include "path.h"
 #include "utils.h"
 
-/* Simple command line:
-   ./trabalho <input1> [<input2> ...] [-v] [-o outpath] [-S statsfile]
-*/
-
 int main(int argc, char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Uso: %s <input1> [<input2> ...] [-v] [-o outpath] [-S statsfile]\n", argv[0]);
@@ -18,8 +14,6 @@ int main(int argc, char **argv) {
     int verbose = 0;
     const char *outpath = NULL;
     const char *statsfile = NULL;
-
-    /* collect input files (non-flag args) */
     char **inputs = malloc(argc * sizeof(char*));
     int n_inputs = 0;
     for (int i=1;i<argc;++i) {

@@ -22,7 +22,6 @@ void path_print(const PathStep *path, int path_len, const Problem *P) {
 
 void path_print_map_overlay(const PathStep *path, int path_len, const Problem *P) {
     int h = P->h, w = P->w;
-    /* build character map for present (map 0) and past (map 1) separately */
     for (int m=0;m<2;++m) {
         printf("Mapa %s:\n", m==0 ? "Presente" : "Passado");
         for (int i=0;i<h;++i) {

@@ -6,4 +6,4 @@
 
 void print_stats(const SolverStats *s);
 
-#endif /* UTILS_H */
+#endif 
