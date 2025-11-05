@@ -1,5 +1,21 @@
 {
-    "files.associations": {
-        "readfile.h": "c"
+  "configurations": [
+    {
+      "name": "Win32",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/include",
+        "C:/Users/fabia/OneDrive/Área de Trabalho/SDL3-devel-3.2.26-mingw/x86_64-w64-mingw32/include",
+        "C:/Users/fabia/OneDrive/Área de Trabalho/SDL3-devel-3.2.26-mingw/x86_64-w64-mingw32/include/SDL3"
+      ],
+      "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+      "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+      "cStandard": "c99",
+      "intelliSenseMode": "windows-gcc-x64"
     }
+  ],
+  "version": 4,
+  "files.associations": {
+    "path.h": "c"
+  }
 }
