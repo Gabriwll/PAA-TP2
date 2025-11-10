@@ -16,17 +16,39 @@ Problem* initializeProblem(char* filePath){
         free(problem);
         return NULL;
     }
-    if(!readHeader(&file, problem)) return NULL;
+
+    if(!readHeader(&file, problem)){
+        closeFile(file);
+        free(problem);
+
+        return NULL;
+    }
 
     problem->map[0] = initializeGrid(problem->height, problem->width);
-    if(!readMap(&file, problem->map[0], problem->height, problem->width)) return NULL;
+    if(!readMap(&file, problem->map[0], problem->height, problem->width)){
+        closeFile(file);
+        free(problem);
 
-    if(!skipMapSeparator(&file)) return NULL;
+        return NULL;
+    }
+
+    if(!skipMapSeparator(&file)){
+        closeFile(file);
+        free(problem);
+
+        return NULL;
+    }
     
     problem->map[1] = initializeGrid(problem->height, problem->width);
-    if(!readMap(&file, problem->map[1], problem->height, problem->width)) return NULL;
+    if(!readMap(&file, problem->map[1], problem->height, problem->width)){
+        closeFile(file);
+        free(problem);
+
+        return NULL;
+    }
     
-    if (!problem->map[0] || !problem->map[1]) {
+    if (!problem->map[0] || !problem->map[1]){
+        closeFile(file);
         freeProblem(problem);
         return NULL;
     }
@@ -48,6 +70,11 @@ static Cell** initializeGrid(int height, int width){
         if(grid[i] == NULL){
             printf("Erro ao alocar a coluna %d no grid.\n", i);
 
+            for(int j = 0; j < i; j++){
+                free(grid[j]);
+            }
+            free(grid);
+            
             return NULL;
         }
     }
@@ -249,6 +276,8 @@ int main(){
     }
 
     printMap(problem);
+
+    freeProblem(problem);
 
     return 0;
 }
