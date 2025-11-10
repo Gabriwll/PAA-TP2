@@ -1,12 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "problem.h"
+#include <math.h>
 
-Cell** initializeGrid(int height, int width){
+#include "../include/problem.h"
+
+Problem* initializeProblem(char* filePath){
+    FILE* file;
+
+    Problem* problem = (Problem*)malloc(sizeof(Problem));
+    if(!problem) return NULL;
+
+    printf("Tentando abrir arquivo: %s\n", filePath);
+    if(!openFile(&file, filePath)){
+        free(problem);
+        return NULL;
+    }
+    if(!readHeader(&file, problem)) return NULL;
+
+    problem->map[0] = initializeGrid(problem->height, problem->width);
+    if(!readMap(&file, problem->map[0], problem->height, problem->width)) return NULL;
+
+    if(!skipMapSeparator(&file)) return NULL;
+    
+    problem->map[1] = initializeGrid(problem->height, problem->width);
+    if(!readMap(&file, problem->map[1], problem->height, problem->width)) return NULL;
+    
+    if (!problem->map[0] || !problem->map[1]) {
+        freeProblem(problem);
+        return NULL;
+    }
+    
+    closeFile(file);
+    return problem;
+}
+
+static Cell** initializeGrid(int height, int width){
     Cell** grid = (Cell**)malloc(height * sizeof(Cell*)); //FIXME: possível erro de sintaxe
     if(grid == NULL){
-        printf("Erro ao alocar a estrutura inicial do grid.");
+        printf("Erro ao alocar a estrutura inicial do grid.\n");
         return NULL;
     }
 
@@ -14,29 +46,13 @@ Cell** initializeGrid(int height, int width){
         grid[i] = (Cell*)malloc(width * sizeof(Cell));
 
         if(grid[i] == NULL){
-            printf("Erro ao alocar a coluna %d no grid", i);
+            printf("Erro ao alocar a coluna %d no grid.\n", i);
 
             return NULL;
         }
     }
 
     return grid;
-}
-
-Problem* allocateProblem(int height, int width){
-    Problem *problem = malloc(sizeof(Problem));
-    
-    if(!problem) return NULL;
-
-    problem->map[0] = initializeGrid(height, width);
-    problem->map[1] = initializeGrid(height, width);
-
-    if (!problem->map[0] || !problem->map[1]) {
-        problem_free(problem);
-        return NULL;
-    }
-
-    return problem;
 }
 
 int cell_is_passable(Cell *cell){
@@ -69,9 +85,10 @@ static void parse_token(Cell *cell, const char *tok){
     }
 }
 
-int openFile(FILE** file, const char* path){ //FIXME: Possível erro ao abrir o arquivo
-    file = fopen(path, "r");
-    if(file == NULL){
+
+static int openFile(FILE** file, const char* path){ //FIXME: Possível erro ao abrir o arquivo
+    *file = fopen(path, "r");
+    if(*file == NULL){
         printf("Erro na abertura de arquivo %s.\n", path);
         return 0;
     }
@@ -79,19 +96,19 @@ int openFile(FILE** file, const char* path){ //FIXME: Possível erro ao abrir o 
     return 1;
 }
 
-void closeFile(FILE* file){
+static void closeFile(FILE* file){
     fclose(file);
 }
 
-int readHeader(FILE* file, Problem* problem){
-    if (fscanf(file, "%d %d %d %d %d",
+static int readHeader(FILE** file, Problem* problem){ //FIXME: não sei se tem necessidade desse ponteiro duplo no arquivo
+    if (fscanf(*file, "%d %d %d %d %d",
                &problem->height,
                &problem->width,
                &problem->initialForce,
                &problem->restRecoverValue,
                &problem->nikadorForce) != 5){
         
-        printf(stderr, "Erro: cabeçalho inválido.\n");
+        printf("Erro: cabeçalho inválido.\n");
         
         return 0;
     }
@@ -99,12 +116,12 @@ int readHeader(FILE* file, Problem* problem){
     return 1;
 }
 
-static int readMap(FILE* file, Cell** grid, int height, int width){
+static int readMap(FILE** file, Cell** grid, int height, int width){ //FIXME: não sei se tem necessidade desse ponteiro duplo no arquivo
     char token[16];
 
     for (int i = 0; i < height; i++){
         for (int j = 0; j < width; j++){
-            if (fscanf(file, "%15s", token) != 1) {
+            if (fscanf(*file, "%15s", token) != 1) {
                 fprintf(stderr, "Erro: token faltando na posição [%d][%d]\n", i, j);
                 return 0;
             }
@@ -115,16 +132,71 @@ static int readMap(FILE* file, Cell** grid, int height, int width){
     return 1;
 }
 
-static int skipMapSeparator(FILE* file){
+static int skipMapSeparator(FILE** file){ //FIXME: não sei se tem necessidade desse ponteiro duplo
     char separator[8];
 
-    if (fscanf(file, "%7s", separator) != 1 || strcmp(separator, "///") != 0) {
+    if (fscanf(*file, "%7s", separator) != 1 || strcmp(separator, "///") != 0) {
         fprintf(stderr, "Erro: separador '///' não encontrado.\n");
 
         return 0;
     }
 
     return 1;
+}
+
+void printMap(Problem* problem){
+    printf("Caminho do presente:\n\n");
+    printGrid(problem->map[0], problem->height, problem->width);
+    
+    printf("Caminho do futuro:\n\n");
+    printGrid(problem->map[1], problem->height, problem->width);
+}
+
+static void printGrid(Cell** grid, int height, int width){
+    printf("+");
+    for(int i = 0; i < (width * 4) + 1; i++){
+        printf("-");
+    }
+    printf("+\n");
+
+
+    for(int i = 0; i < height; i++){
+        printf("| ");
+        for(int j = 0; j < width; j++){
+            if(grid[i][j].type == CELL_EMPTY){
+                printf("000 ");
+            }
+            
+            if(grid[i][j].type == CELL_BLOCK){
+                printf("*** ");
+            }
+            
+            if(grid[i][j].type == CELL_ANCHOR){
+                printf("AAA ");
+            }
+            
+            if(grid[i][j].type == CELL_MONSTER){
+                for(int k = 0; k < 3 - howMuchDigits(grid[i][j].val); k++) printf("0");
+
+                printf("%d ", grid[i][j].val);
+            }
+        }
+        printf("|\n");
+    }
+
+    printf("+");
+    for(int i = 0; i < (width * 4) + 1; i++){
+        printf("-");
+    }
+    printf("+\n");
+}
+
+static int howMuchDigits(int number){
+    if(number == 0){
+        return 1;
+    }
+
+    return (int)log10(abs(number)) + 1;
 }
 
 /*O bloco seguinte contém 3 funções que resolvem um único problema.
@@ -153,7 +225,7 @@ static void freeProblem(Problem *problem){
 
 static int freeGrid(Cell** grid, int height){
     if(!grid){
-        printf("Grid nao existe.");
+        printf("Grid nao existe.\n");
         return 0;
     }
 
@@ -169,95 +241,14 @@ static int freeGrid(Cell** grid, int height){
 * 
 */
 int main(){
-    int width = 10;
-    int height = 10;
+    Problem* problem = initializeProblem("./PAA-TP2/Files/In/exemplo.txt");
+    if(problem == NULL){
+        printf("Deu problema. Execucao terminada.\n");
 
-    Cell** grid = initializeGrid(height, width);
+        return 1;
+    }
+
+    printMap(problem);
+
+    return 0;
 }
-
-/*
-Problem* readProblemFromFile(const char *path) {
-    FILE *file;
-    Problem *problem = malloc(sizeof(Problem));
-    
-    int height;
-    int width;
-
-    if(!openFile(file, path)){
-        printf("Erro na abertura do arquivo.");
-
-        return NULL;
-    }
-
-    if (!problem){
-        printf("Erro na alocacao de memoria ()");
-        fclose(file);
-        return NULL;
-    }
-    
-    if (fscanf(file, "%d %d %d %d %d", &height,
-                                       &width,
-                                       &problem->initialForce,
-                                       &problem->restRecoverValue,
-                                       &problem->nikadorForce) != 5) {
-
-        fclose(file);
-        free(problem);
-        
-        return NULL;
-    }
-    
-    problem->height = height;
-    problem->width = width;
-    
-    problem->map[0] = initializeGrid(height, width);
-    problem->map[1] = initializeGrid(height, width);
-
-    if (!problem->map[0] || !problem->map[1]){
-        fclose(file);
-        problem_free(problem);
-        return NULL;
-    }
-
-    char tok[64];
-    for (int i = 0; i < height; i++){
-        for (int j = 0; j < width; j++) {
-            if (fscanf(file, " %s", tok) != 1) {
-                fclose(file);
-                problem_free(problem);
-                return NULL;
-            }
-
-            parse_token(&problem->map[0][i][j], tok);
-        }
-    }
-
-    if(fscanf(file, "%s", tok) != 1){
-        fclose(file);
-        problem_free(problem);
-        return NULL;
-    }
-
-    if(strcmp(tok, "///") != 0){
-        fclose(file);
-        problem_free(problem);
-        return NULL;
-    }
-
-    for (int i = 0; i < height; i++){
-        for (int j = 0; j < width; j++){
-            if (fscanf(file, "%s", tok) != 1){ 
-            fclose(file);
-            problem_free(problem);
-            return NULL;
-        }
-
-        parse_token(&problem->map[1][i][j], tok);
-        }
-    }
-
-    fclose(file);
-    problem->source_filename = strdup(path);
-    return problem;
-}
-*/
