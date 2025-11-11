@@ -52,7 +52,3 @@ int path_save_to_file(const char *outpath, const PathStep *path, int path_len) {
     return 0;
 }
 
-// ------------------- FUNÇÃO ADICIONAL -------------------
-void free_pathsteps(PathStep *path) {
-    if (path) free(path);
-}

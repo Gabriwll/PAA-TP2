@@ -10,15 +10,14 @@ typedef struct {
     double approx_ms;
 } SolverStats;
 
-
 typedef struct {
     int row;
     int col;
-    int map; 
+    int map;
     int force;
 } PathStep;
 
 PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *stats, int verbose);
 void free_pathsteps(PathStep *p);
 
-#endif 
+#endif
