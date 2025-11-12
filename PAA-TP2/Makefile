@@ -1,33 +1,36 @@
-
-TARGET = trabalho.exe
+# ============================================================
+# Makefile - Projeto PAA-TP2 (SDL3 + MinGW)
+# ============================================================
 
 CC = gcc
-CFLAGS = -Wall -O2 -std=c99
+CFLAGS = -Wall -O2 -std=c99 -Iinclude \
+         -IC:/SDL3/SDL3-devel-3.2.26-mingw/SDL3-3.2.26/x86_64-w64-mingw32/include \
+         -IC:/SDL3/SDL3-devel-3.2.26-mingw/SDL3-3.2.26/x86_64-w64-mingw32/include/SDL3
 
-INCLUDES = -Iinclude \
-           -IC:/SDL3/SDL3-devel-3.2.26-mingw/SDL3-3.2.26/x86_64-w64-mingw32/include
+SDL_LIB_DIR = C:/SDL3/SDL3-devel-3.2.26-mingw/SDL3-3.2.26/x86_64-w64-mingw32/lib
 
-LIBS = -LC:/SDL3/SDL3-devel-3.2.26-mingw/SDL3-3.2.26/x86_64-w64-mingw32/lib \
-       -lmingw32 -lSDL3
+SRC = src/main.c src/problem.c src/dp_solver.c src/path.c src/utils.c src/gui.c src/generator.c
+OBJ = $(SRC:.c=.o)
+TARGET = trabalho.exe
 
+# 🔗 SDL3 e dependências do Windows (na ordem correta)
+LIBS = -Wl,-Bstatic $(SDL_LIB_DIR)/libSDL3.dll.a -Wl,-Bdynamic \
+       -lmingw32 -lwinmm -ldxguid -limm32 -lole32 -loleaut32 -lversion -luser32 -lgdi32
 
-SRC = src/main.c \
-      src/problem.c \
-      src/dp_solver.c \
-      src/path.c \
-      src/utils.c \
-      src/gui.c \
-      src/generator.c
+# ============================================================
+# Targets
+# ============================================================
 
-all:
-	@echo 🔧 Compilando o projeto...
-	$(CC) $(CFLAGS) $(INCLUDES) $(SRC) $(LIBS) -o $(TARGET)
-	@echo ✅ Compilação concluída com sucesso!
+all: $(TARGET)
 
-run: all
-	@echo ▶️ Executando exemplo...
-	./$(TARGET) exemplos/mapa_5x5.txt -v
+$(TARGET): $(OBJ)
+	@echo "🔗 Compilando e linkando com SDL3..."
+	$(CC) $(CFLAGS) $(OBJ) -L$(SDL_LIB_DIR) -o $(TARGET) $(LIBS)
 
 clean:
-	@echo 🧹 Limpando arquivos...
-	del $(TARGET) 2>nul || true
+	@echo "🧹 Limpando objetos e executáveis..."
+	del /Q src\*.o 2>nul || true
+	del /Q $(TARGET) 2>nul || true
+
+run: $(TARGET)
+	./$(TARGET)
