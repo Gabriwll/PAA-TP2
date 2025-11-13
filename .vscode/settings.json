@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "readfile.h": "c"
+        "readfile.h": "c",
+        "dp_solver.h": "c",
+        "utils.h": "c"
     }
 }

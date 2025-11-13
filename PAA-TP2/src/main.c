@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "problem.h"
-#include "dp_solver.h"
-#include "path.h"
-#include "utils.h"
+
+#include "../include/problem.h"
+#include "../include/dp_solver.h"
+#include "../include/path.h"
+#include "../include/utils.h"
 
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -16,24 +17,59 @@ int main(int argc, char **argv) {
     const char *statsfile = NULL;
     char **inputs = malloc(argc * sizeof(char*));
     int n_inputs = 0;
-    for (int i=1;i<argc;++i) {
-        if (strcmp(argv[i],"-v")==0 || strcmp(argv[i],"--verbose")==0) { verbose=1; continue; }
-        if (strcmp(argv[i],"-o")==0 && i+1<argc) { outpath = argv[++i]; continue; }
-        if (strcmp(argv[i],"-S")==0 && i+1<argc) { statsfile = argv[++i]; continue; }
-        if (argv[i][0] == '-') { fprintf(stderr, "Flag desconhecida: %s\n", argv[i]); return 1; }
-        inputs[n_inputs++] = argv[i];
-    }
-    if (n_inputs == 0) { fprintf(stderr, "Nenhum ficheiro de entrada indicado\n"); return 1; }
 
-    for (int idx=0; idx<n_inputs; ++idx) {
-        const char *infile = inputs[idx];
-        Problem *P = problem_read_from_file(infile);
-        if (!P) {
-            fprintf(stderr, "Erro ao ler arquivo: %s\n", infile);
+    for (int i = 1; i < argc; i++){
+        if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0){ 
+            verbose = 1;
+            
             continue;
         }
-        if (verbose) printf("Processando %s (h=%d w=%d F=%d D=%d N=%d)\n",
-                            infile, P->h, P->w, P->F_init, P->D, P->N);
+
+        if (strcmp(argv[i],"-o") == 0 && (i + 1) < argc){
+            outpath = argv[i++];
+            
+            continue;
+        }
+        
+        if (strcmp(argv[i],"-S") == 0 && (i + 1) < argc){
+            statsfile = argv[i++];
+            
+            continue;
+        }
+        
+        if (argv[i][0] == '-') {
+            fprintf(stderr, "Flag desconhecida: %s\n", argv[i]);
+            
+            return 1;
+        }
+        inputs[n_inputs++] = argv[i];
+    }
+
+    if (n_inputs == 0){
+        fprintf(stderr, "Nenhum ficheiro de entrada indicado\n");
+        
+        return 1;
+    }
+
+    for (int idx = 0; idx < n_inputs; idx++) {
+        char *infile = inputs[idx];
+
+        Problem* P = initializeProblem(infile);
+
+        if(!P){
+            fprintf(stderr, "Erro ao ler arquivo: %s\n", infile);
+            
+            continue;
+        }
+
+        if(verbose){
+            printf("Processando %s (h=%d w=%d F=%d D=%d N=%d)\n", infile, 
+                                                                  P->height,
+                                                                  P->width,
+                                                                  P->initialForce,
+                                                                  P->restRecoverValue,
+                                                                  P->nikadorForce);
+        }
 
         SolverStats stats = {0};
         int path_len = 0;
@@ -41,17 +77,30 @@ int main(int argc, char **argv) {
 
         if (path == NULL || path_len == 0) {
             printf("A calamidade de Nikador é inevitável\n");
+
         } else {
             path_print(path, path_len, P);
+            
             if (verbose) {
                 print_stats(&stats);
                 path_print_map_overlay(path, path_len, P);
+
+                char plotTitle[256];
+                snprintf(plotTitle, sizeof(plotTitle), "Estatisticas - %s (altura = %d largura = %d)",
+                                                        infile, P->height, P->width);
+                
+                plotSolverStats(&stats, plotTitle);
             }
+            
             if (outpath) {
-                if (path_save_to_file(outpath, path, path_len) != 0)
+                if (path_save_to_file(outpath, path, path_len) != 0){
                     fprintf(stderr, "Falha ao salvar caminho em %s\n", outpath);
-                else if (verbose) printf("Caminho salvo em %s\n", outpath);
+                
+                } else if (verbose){
+                    printf("Caminho salvo em %s\n", outpath);
+                }
             }
+            
             if (statsfile) {
                 FILE *sf = fopen(statsfile, "w");
                 if (sf) {
@@ -65,7 +114,7 @@ int main(int argc, char **argv) {
         }
 
         free_pathsteps(path);
-        problem_free(P);
+        freeProblem(P);
     }
 
     free(inputs);

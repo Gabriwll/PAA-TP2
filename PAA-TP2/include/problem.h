@@ -45,7 +45,7 @@ static void printGrid(Cell** grid, int height, int width);
 static int howMuchDigits(int number); //Função auxiliar
 
 void killProblem(FILE* file, Problem* problem); //Libera memória usada
-static void freeProblem(Problem* problem);
+void freeProblem(Problem* problem);
 static int freeGrid(Cell** grid, int height);
 
 

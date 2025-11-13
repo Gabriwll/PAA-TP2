@@ -15,30 +15,20 @@ GraphInfo* initializeGraphInfo(char* graphTitle, int dataSize,
         return NULL;
     }
 
-    //strcpy(graph->graphTitle, graphTitle);
     graph->graphTitle = strdup(graphTitle);
     graph->dataSize = dataSize;
 
-    printf("graphTitle");
-
-    //strcpy(graph->xLabelName, xLabelName);
     graph->xLabelName = strdup(xLabelName);
     graph->xData = (int*)malloc(sizeof(int) * dataSize);
     graph->xData = xData;
-    
-    printf("xLabelName");
     
     graph->yLabelName = strdup(yLabelName);
     graph->yData = (int*)malloc(sizeof(int) * dataSize);
     graph->yData = yData;
 
-    //memcpy(graph->xData, x, graph->dataSize * sizeof(int));
-    //memcpy(graph->yData, y, graph->dataSize * sizeof(int));
-
     return graph;
 }
 
-/*
 void print_stats(const SolverStats *s) {
     if (!s) return;
     printf("=== Estatísticas do solver ===\n");
@@ -48,7 +38,6 @@ void print_stats(const SolverStats *s) {
     printf("Tempo aproximado: %.3f ms\n", s->approx_ms);
     printf("=============================\n");
 }
-*/
 
 static char* buildPythonCommand(char* graphTitle, char* xLabelName, char* yLabelName) {
     // Calcula o tamanho necessário
@@ -108,6 +97,41 @@ void plotGraph(GraphInfo* graph) {
     printf("Plot finalizado com status: %d\n", status);
 }
 
+void plotSolverStats(const SolverStats *stats, char* title) {
+    if (!stats) {
+        printf("Erro: Estatísticas inválidas.\n");
+        return;
+    }
+
+    // Dados para o gráfico (x = índice, y = valores)
+    int dataSize = 4;
+    int xData[] = {1, 2, 3, 4};
+    int yData[] = {
+        stats->nodes_expanded,
+        stats->reachable_states, 
+        stats->max_frontier,
+        stats->approx_ms
+    };
+
+    // Criar estrutura do gráfico
+    GraphInfo* graph = initializeGraphInfo(title ? title : "Estatísticas do Solver",
+                                           dataSize,
+                                           "Métricas",
+                                           xData,
+                                           "Valores",
+                                           yData
+    );
+
+    if (!graph) {
+        printf("Erro ao criar gráfico de estatísticas.\n");
+        return;
+    }
+
+    // Plotar o gráfico
+    plotGraph(graph);
+    freeGraphInfo(graph);
+}
+
 void freeGraphInfo(GraphInfo* graph) {
     if (!graph) return;
     
@@ -120,6 +144,7 @@ void freeGraphInfo(GraphInfo* graph) {
     free(graph);
 }
 
+/*
 int main() {
     // Dados de exemplo
     int x[] = {1, 2, 3, 4, 5, 6};
@@ -155,3 +180,4 @@ int main() {
     
     return 0;
 }
+*/

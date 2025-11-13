@@ -29,9 +29,10 @@ typedef struct Data {
 } Data;
 
 GraphInfo* initializeGraphInfo(char* graphTitle, int dataSize, char* xLabelName, int* xData, char* yLabelName, int* yData);
-//void print_stats(const SolverStats *s);
+void print_stats(const SolverStats *s);
 static char* buildPythonCommand(char* graphTitle, char* xLabelName, char* yLabelName);
 void plotGraph(GraphInfo* graph);
+void plotSolverStats(const SolverStats *stats, char* title);
 void freeGraphInfo(GraphInfo* graph);
 
 #endif  //UTILS_H

@@ -235,7 +235,7 @@ void killProblem(FILE* file, Problem* problem){
     if(problem != NULL) freeProblem(problem);
 }
 
-static void freeProblem(Problem *problem){
+void freeProblem(Problem *problem){
     if (!problem){
         return;
     }
@@ -264,20 +264,19 @@ static int freeGrid(Cell** grid, int height){
     return 1;
 }
 
-/*Testando o TAD:
-* 
-*/
+/*
 int main(){
     Problem* problem = initializeProblem("./PAA-TP2/Files/In/exemplo.txt");
     if(problem == NULL){
         printf("Deu problema. Execucao terminada.\n");
-
+        
         return 1;
     }
-
+    
     printMap(problem);
-
+    
     freeProblem(problem);
-
+    
     return 0;
 }
+*/

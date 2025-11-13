@@ -3,7 +3,7 @@
 
 #include "problem.h"
 
-typedef struct {
+typedef struct SolverStats {
     long nodes_expanded;
     long reachable_states;
     long max_frontier;
@@ -11,7 +11,7 @@ typedef struct {
 } SolverStats;
 
 
-typedef struct {
+typedef struct PathStep {
     int row;
     int col;
     int map; 
@@ -21,4 +21,4 @@ typedef struct {
 PathStep *solve_problem_dp(const Problem *P, int *out_path_len, SolverStats *stats, int verbose);
 void free_pathsteps(PathStep *p);
 
-#endif 
+#endif //DP_SOLVER_H
